@@ -28,7 +28,7 @@ app.get('/', (req, res) => {
       <h1>SmallLikeAnDinosaur</h1>
       <p>Imagine um lugar misterioso, um lugar de baixo da terra, conectado por um indivíduo capaz de virar um gato e atrair pessoas para sua dimensão, este é o conceito-chave de SLAD.</p>
       <ul>
-        ${fileData.map(({ file, sizeKB, fileM }) => `<li><a href="/${file}">${file} (${sizeKB} KB) <br></a><small>[LAST MOD.: ${fileM}]</small></li>`).join('')}
+        ${fileData.map(({ file, sizeKB, fileM }) => `<li><a href="/${file}">${file} (${sizeKB} KB) <br></a><small><a>[LAST MOD.: ${fileM}]</a></small></li>`).join('')}
       </ul>
       <div id="content"></div>
       <script src="script.js"></script>
@@ -45,7 +45,9 @@ app.get('/:file', (req, res) => {
 
   if (fs.existsSync(filePath)) {
     let content = fs.readFileSync(filePath, 'utf8');
-    content = content.replace(/\n/g, '<br>'); // Substitui quebras de linha por <br>
+    content = content.replace(/\n/g, '<br>'); 
+    content = content.replace(/\{([^}]+)\}/g, '<center><img src="images/$1.jpg"></center>');
+    
 
     const files = fs.readdirSync(path.join(__dirname, 'parts'));
     const currentFileIndex = files.indexOf(file);
@@ -61,7 +63,7 @@ app.get('/:file', (req, res) => {
       </head>
       <body>
         <h1>${file}</h1>
-        <div id="content">${content}</div>
+        <div id="content"><a>${content}</a></div>
         <script src="script.js"></script>
         ${previousFile ? `<button id="backButton" onclick="window.location.href='/${previousFile}'">Back</button>` : ''}
         ${nextFile ? `<button id="nextButton" onclick="window.location.href='/${nextFile}'">Next</button>` : ''}
