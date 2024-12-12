@@ -40,6 +40,13 @@ app.use(express.static(path.join(__dirname)));
 // Página inicial
 app.get('/', (req, res) => {
   const files = fs.readdirSync(path.join(__dirname, 'parts'));
+  const fileData = files.map(file => {
+    const filePath = path.join(__dirname, 'parts', file);
+    const stats = fs.statSync(filePath);
+    const sizeKB = (stats.size / 1024).toFixed(2); // Size in KB, rounded to 2 decimal places
+    const fileM = stats.mtime
+    return { file, sizeKB, fileM };
+  });
 
   const html = `
     <!DOCTYPE html>
@@ -52,7 +59,7 @@ app.get('/', (req, res) => {
       <h1>SmallLikeAnDinosaur</h1>
       <p>Imagine um lugar misterioso, um lugar de baixo da terra, conectado por um indivíduo capaz de virar um gato e atrair pessoas para sua dimensão, este é o conceito-chave de SLAD.</p>
       <ul>
-        ${files.map(file => `<li><a href="/${file}">${file}</a></li>`).join('')}
+        ${fileData.map(({ file, sizeKB, fileM }) => `<li><a href="/${file}">${file} (${sizeKB} KB) <br></a><small><a>[LAST MOD.: ${fileM}]</a></small></li>`).join('')}
       </ul>
       <div id="content"></div>
       <script src="script.js"></script>
@@ -74,9 +81,16 @@ app.get('/:file', (req, res) => {
 
 
     const files = fs.readdirSync(path.join(__dirname, 'parts'));
-    const currentFileIndex = files.indexOf(file);
-    const previousFile = files[currentFileIndex - 1];
-    const nextFile = files[currentFileIndex + 1];
+    const orderFile = path.join(__dirname, 'parts', 'order.json');
+    const order = JSON.parse(fs.readFileSync(orderFile, 'utf8'));
+
+    const sortedFiles = files.sort((a, b) => {
+      return order[a] - order[b];
+    });
+
+    const currentFileIndex = sortedFiles.indexOf(file);
+    const previousFile = sortedFiles[currentFileIndex - 1];
+    const nextFile = sortedFiles[currentFileIndex + 1];
 
     const html = `
       <!DOCTYPE html>
